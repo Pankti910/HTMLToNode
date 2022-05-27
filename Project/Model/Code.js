@@ -5,7 +5,7 @@ const CodeSchema=mongoose.Schema({
 
     type:{
         type:Number,
-        //required:true
+        unique: true
     },
     genericCode:{
         type:String
