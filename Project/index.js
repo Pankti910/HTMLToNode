@@ -14,6 +14,7 @@ var Constants = require('constants');
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended:false}));
 require('./connection')
+const functions= require("./Function.js")
 
 
 
@@ -28,10 +29,12 @@ app.get('/', (req, res) => {
     var title=json.filter(obj=>{return obj.tag=="head"});
     title=title[0].child.filter(obj=>{return obj.tag=='title'})
     title=title.map(ele=>{return ele.child[0].text})
-    //  var body=json.filter(obj=>{return obj.tag=="body"})
-    //  var bodyoForm=body[0].child.filter(obj=>{return obj.tag=="form"})
-    //  bodyoForm=bodyoForm[0].child.filter(obj=>{return (obj.node=="element" && obj.attr && obj.attr.name)})
-   //  res.send(title)
+     var body=json.filter(obj=>{return obj.tag=="body"})
+     var bodyForm=body[0].child.filter(obj=>{return obj.tag=="form"})
+     bodyForm=bodyForm[0].child.filter(obj=>{return (obj.node=="element" && obj.attr && obj.attr.name)})
+     var modelProperty=typeConversion(bodyForm.map(obj=>{return obj.attr}))
+     modelProperty=JSON.stringify(modelProperty).replace(/\"/g, "")
+     modelProperty=modelProperty.replace(/},/g,"},\n");
     var projectFolder=path.parse(path.basename(htmlPath)).name
     var projectFolderPath=path.join('../ProjectsDestination',projectFolder);
     if (fs.existsSync(projectFolderPath)) {
@@ -43,7 +46,6 @@ app.get('/', (req, res) => {
         console.log(`Directory ${dir} is created`)
         makeDir(dirModel=projectFolderPath+"/Model").then(()=>{
         console.log(`Directory Model${dirModel} is created`)
-        console.log(dirModel)
         Code.findOne({type:1},{genericCode:1,_id:0}).then((docs)=>{
         
           fs.writeFile(`${dirModel}/${title}.js`, eval('`'+docs.genericCode+'`'), function (err) {
@@ -52,17 +54,15 @@ app.get('/', (req, res) => {
         });
         }).catch((err)=>{
           console.log(err.message)
-        })
+           })
          
        }).catch(err => {
        console.log(err.message);
       })
-    }).catch(err => {
+      }).catch(err => {
        console.log(err.message)
-    })
     
-  // If promise gets rejected
-    .catch(err => {
+    }).catch(err => {
       console.log(err.message)
   })
 
@@ -70,7 +70,7 @@ app.get('/', (req, res) => {
 
 
   
-  res.send(projectFolder)
+  //res.send(projectFolder)
 
   })
 });
@@ -108,4 +108,12 @@ function  removeDir(projectFolderPath) {
        fs.rmdirSync(projectFolderPath)
       }
      
+}
+
+function typeConversion(data){
+  var dict={}
+  for(var i=0;i<data.length;i++){
+    dict[data[i].id]=functions.DataTypeConverion(data[i].type)
+  }
+  return dict;
 }
