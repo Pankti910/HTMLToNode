@@ -15,6 +15,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended:false}));
 require('./connection')
 const functions= require("./Function.js")
+let constants = require('./constant');
 
 
 
@@ -23,35 +24,58 @@ app.get('/', (req, res) => {
  var htmlPath = path.join(__dirname, '.', 'HTMLSource','AppPages.html');
 
   fs.readFile(htmlPath, 'utf8', (err, dataHtml)=>{
-    const makeDir = util.promisify(fs.mkdir)
-    var htmlJson=html2json(dataHtml);
-    json=htmlJson.child[0].child
-    var title=json.filter(obj=>{return obj.tag=="head"});
-    title=title[0].child.filter(obj=>{return obj.tag=='title'})
-    title=title.map(ele=>{return ele.child[0].text})
+     const makeDir = util.promisify(fs.mkdir)
+     const makeFile = util.promisify(fs.writeFile)
+     
+     var htmlJson=html2json(dataHtml);
+    
+     json=htmlJson.child[0].child
+     var title=json.filter(obj=>{return obj.tag=="head"});
+     title=title[0].child.filter(obj=>{return obj.tag=='title'})
+     title=title.map(ele=>{return ele.child[0].text})
      var body=json.filter(obj=>{return obj.tag=="body"})
      var bodyForm=body[0].child.filter(obj=>{return obj.tag=="form"})
      bodyForm=bodyForm[0].child.filter(obj=>{return (obj.node=="element" && obj.attr && obj.attr.name)})
      var modelProperty=typeConversion(bodyForm.map(obj=>{return obj.attr}))
      modelProperty=JSON.stringify(modelProperty).replace(/\"/g, "")
      modelProperty=modelProperty.replace(/},/g,"},\n");
-    var projectFolder=path.parse(path.basename(htmlPath)).name
-    var projectFolderPath=path.join('../ProjectsDestination',projectFolder);
-    if (fs.existsSync(projectFolderPath)) {
+     var projectFolder=path.parse(path.basename(htmlPath)).name
+     var projectFolderPath=path.join('../ProjectsDestination',projectFolder);
+     if (fs.existsSync(projectFolderPath)) {
       //remove existing folder and subfolder
-      removeDir(projectFolderPath)
-    }
+      functions.removeDir(projectFolderPath)
+     }
     //create project folder
      makeDir(dir=projectFolderPath).then(() => {
         console.log(`Directory ${dir} is created`)
         makeDir(dirModel=projectFolderPath+"/Model").then(()=>{
         console.log(`Directory Model${dirModel} is created`)
-        Code.findOne({type:1},{genericCode:1,_id:0}).then((docs)=>{
+        Code.findOne({type:constants.CODE_TYPE.MODEL},{genericCode:1,_id:0}).then((docs)=>{
+          makeFile(`${dirModel}/${title}.js`, eval('`'+docs.genericCode+'`')).then(()=>{
+            console.log('Model Created')
+            makeDir(dirController=projectFolderPath+"/Controller").then(()=>{
+              Code.findOne({type:constants.CODE_TYPE.CONTROLLER},{genericCode:1,_id:0}).then((docs)=>{
+                makeFile(`${dirController}/${title}Controller.js`,eval('`'+docs.genericCode+'`')).then(()=>{
+                  console.log('Controller created')
+                  makeDir(dirRoute=projectFolderPath+"/Route").then(()=>{
+                    Code.findOne({type:constants.CODE_TYPE.ROUTE},{genericCode:1,_id:0}).then((docs)=>{
+                      makeFile(`${dirRoute}/${title}Route.js`,eval('`'+docs.genericCode+'`')).then(()=>{
+                        console.log('Route created')
+                        Code.findOne({type:constants.CODE_TYPE.PACKAGE},{genericCode:1,_id:0}).then((docs)=>{
+                          var codeReplace=eval('`'+docs.genericCode+'`')
+                          
+                          makeFile(`${projectFolderPath}/package.json`,codeReplace)
+                        }).catch((err)=>console.log(err.message))
+                        
+                      }).catch((err)=>console.log(err.message))
+                    }).catch((err)=>console.log(err.message))
+                  }).catch((err)=>console.log(err.message))  
+
+                }).catch((err)=>console.log(err.message))
+              }).catch((err)=>console.log(err.message))
+            })
+          }).catch((err)=>console.log(err.message))
         
-          fs.writeFile(`${dirModel}/${title}.js`, eval('`'+docs.genericCode+'`'), function (err) {
-          if (err) throw err;
-          console.log('Saved!');
-        });
         }).catch((err)=>{
           console.log(err.message)
            })
@@ -91,24 +115,7 @@ app.listen(PORT, () => {
 })
 
 
-function  removeDir(projectFolderPath) {
-    console.log("remove")
-     const files = fs.readdirSync(projectFolderPath)
 
-      if (files.length > 0) {
-        files.forEach(function(filename) {
-        if (fs.statSync(projectFolderPath + "/" + filename).isDirectory()) {
-          removeDir(projectFolderPath + "/" + filename)
-        } else {
-          fs.unlinkSync(projectFolderPath + "/" + filename)
-        }
-       })
-        fs.rmdirSync(projectFolderPath)
-       } else {
-       fs.rmdirSync(projectFolderPath)
-      }
-     
-}
 
 function typeConversion(data){
   var dict={}
