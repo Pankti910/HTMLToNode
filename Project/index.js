@@ -64,7 +64,20 @@ app.get('/', (req, res) => {
                         Code.findOne({type:constants.CODE_TYPE.PACKAGE},{genericCode:1,_id:0}).then((docs)=>{
                           var codeReplace=eval('`'+docs.genericCode+'`')
                           
-                          makeFile(`${projectFolderPath}/package.json`,codeReplace)
+                          makeFile(`${projectFolderPath}/package.json`,codeReplace).then(()=>{
+                            Code.findOne({type:constants.CODE_TYPE.INDEX},{genericCode:1,_id:0}).then((docs)=>{
+                              var codeReplace=eval('`'+docs.genericCode+'`');
+                              makeFile(`${projectFolderPath}/index.js`,codeReplace).then(()=>{
+                                Code.findOne({type:constants.CODE_TYPE.CONNECTION},{genericCode:1,_id:0}).then((docs)=>{
+                                  var codeReplace=eval('`'+docs.genericCode+'`');
+                                  makeFile(`${projectFolderPath}/connection.js`,codeReplace).then(()=>{
+                                    res.send("Project folder created")
+
+                                  }).catch((err)=>console.log(err.message))
+                                }).catch((err)=>console.log(err.message))
+                              }).catch((err)=>console.log(err.message))
+                            }).catch((err)=>console.log(err.message))
+                          }).catch((err)=>console.log(err.message))
                         }).catch((err)=>console.log(err.message))
                         
                       }).catch((err)=>console.log(err.message))
