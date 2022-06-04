@@ -1,0 +1,15 @@
+const express=require('express');
+const app=express();
+require('./connection')
+const <%=title%>Route=require(`./Route/<%=title%>Route`);
+const PORT=process.env.PORT || 9000;
+
+var bodyParser=require('body-parser');
+app.use(bodyParser.urlencoded({ extended: false }))
+
+// parse application/json
+app.use(bodyParser.json())
+
+app.listen(PORT,()=>console.log("Server start at "+PORT));
+
+app.use('/',<%=title%>Route);
