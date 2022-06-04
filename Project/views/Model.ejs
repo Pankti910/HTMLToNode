@@ -1,0 +1,9 @@
+const {Schema} = require('mongoose');
+const mongoose=require("mongoose");
+const <%=model%>Schema=mongoose.Schema({
+  <%  Object.keys(modelProperty).forEach(function (key) { %>
+    <%= key %>:<%- JSON.stringify(modelProperty[key] || null) %>,
+   <% }) %>
+  });
+const <%=model%>=mongoose.model("<%=model%>",<%=model%>Schema);
+module.exports={<%=model%>};

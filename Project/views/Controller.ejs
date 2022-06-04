@@ -1,0 +1,46 @@
+const {<%=title%>} = require('../Model/<%=title%>');
+var ObjectId = require('mongoose').Types.ObjectId;
+
+
+exports.get=(req,res,next)=>{
+
+    <%=title%>.find({}).then((data)=>{
+       res.status(200).json({message:"Get List",data:data});
+    }).catch((err)=>{
+        console.log(err);
+        res.status(500).json({message:err,data:[]})
+    });
+}
+
+exports.create=(req,res,next)=>{
+    var newData=new <%=title%>(req.body);
+    newData.save().then((result)=>{
+        res.status(200).json({message:"Data created",data:result})
+    }).then((err)=>{
+        console.log(err)
+        res.status(500).json({message:err,data:null})
+    })
+}
+
+exports.update=(req,res,next)=>{
+    const id=req.params.id;
+    var updateData=req.body;
+    <%=title%>.findByIdAndUpdate(id,updateData,{ upsert: true, new: true }).then((result)=>{
+        res.status(200).json({message:"Data updated",data:result})
+    }).catch((err)=>{
+        console.log(err)
+        res.status(500).json({message:err,data:null})
+    })
+}
+
+
+
+exports.delete=(req,res,next)=>{
+    const id=req.params.id;
+    <%=title%>.findByIdAndDelete(id).then((result)=>{
+        res.status(200).json({message:"Data deleted",data:null})
+    }).catch((err)=>{
+        console.log(err)
+        res.status(500).json({message:err,data:[]})
+    })
+}
