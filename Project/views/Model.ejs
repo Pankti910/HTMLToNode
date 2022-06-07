@@ -2,8 +2,9 @@ const {Schema} = require('mongoose');
 const mongoose=require("mongoose");
 const <%=model%>Schema=mongoose.Schema({
   <%  Object.keys(modelProperty).forEach(function (key) { %>
-    <%= key %>:<%- JSON.stringify(modelProperty[key] || null) %>,
-   <% }) %>
+    <%= key.replace(/"/,'') %>:{  <%  Object.keys(modelProperty[key]).forEach(function (ObjKey) { %>
+        <%=ObjKey.replace(/"/,'') %> :<%-modelProperty[key][ObjKey]%>, <% }) %>
+      },<% }) %>
   });
 const <%=model%>=mongoose.model("<%=model%>",<%=model%>Schema);
 module.exports={<%=model%>};

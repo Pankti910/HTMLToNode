@@ -8,28 +8,37 @@ exports.get=(req,res,next)=>{
        res.status(200).json({message:"Get List",data:data});
     }).catch((err)=>{
         console.log(err);
-        res.status(500).json({message:err,data:[]})
+        res.status(500).json({message:"Error occurs while fetching data",data:[]})
     });
 }
 
 exports.create=(req,res,next)=>{
     var newData=new <%=title%>(req.body);
-    newData.save().then((result)=>{
-        res.status(200).json({message:"Data created",data:result})
-    }).then((err)=>{
-        console.log(err)
-        res.status(500).json({message:err,data:null})
+    newData.validate((err)=>{
+        if(err){res.send({message:Object.values(err.errors).map(x=>x.message),data:null})}
+        else{
+         newData.save().then((result)=>{
+           res.status(200).json({message:"Data created",data:result})
+         }).catch((err)=>{
+           console.log(err)
+           res.status(500).json({message:"Error occurs while creating data",data:null})
+         })
+      } 
     })
 }
 
 exports.update=(req,res,next)=>{
     const id=req.params.id;
     var updateData=req.body;
-    <%=title%>.findByIdAndUpdate(id,updateData,{ upsert: true, new: true }).then((result)=>{
+    
+    <%=title%>.findByIdAndUpdate(id,updateData,{ upsert: true, new: true, runValidators:true }).then((result)=>{
         res.status(200).json({message:"Data updated",data:result})
     }).catch((err)=>{
-        console.log(err)
-        res.status(500).json({message:err,data:null})
+        if(err._message=="Validation failed"){
+            res.status(500).json({ message: Object.values(err.errors).map(x=>x.message), data: null })
+        }else{
+            res.status(500).json({message:"Error occurs while updating data",data:null})
+        }
     })
 }
 
@@ -41,6 +50,6 @@ exports.delete=(req,res,next)=>{
         res.status(200).json({message:"Data deleted",data:null})
     }).catch((err)=>{
         console.log(err)
-        res.status(500).json({message:err,data:[]})
+        res.status(500).json({message:"Error occurs while deleting data",data:[]})
     })
 }

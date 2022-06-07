@@ -30,11 +30,21 @@ function removeDir(projectFolderPath) {
 }
 
 function DataTypeConverion(data) {
+  console.log(data.required)
   var typeDict = {
-    "text": "String"
+    "text": "String",
+    "number":"Number",
+    "email":"String"
   }
-  if (typeDict[data]) {
-    return { type: typeDict[data] }
+  if (typeDict[data.type]) {
+    obj={
+      type:typeDict[data.type],
+      ...(data.required!=undefined) &&{required:`[true,"${data.name} is required"]`},
+      ...(data.min!=undefined && data.min) && {min:`[${data.min},"${data.name} must be at leat ${data.min}"]`},
+      ...(data.min!=undefined && data.max) && {max:`[${data.max},"${data.name} must be up to ${data.max}"]`},
+      ...(data.type=='email')&&{match: `[new RegExp(/[a-z0-9]+@[a-z]+\.[a-z]{2,3}/), "Please enter a valid email address"]`}
+    }
+    return obj;
   }
   else {
     return null;

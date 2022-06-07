@@ -30,7 +30,7 @@ function genrateNode(htmlFile) {
 
     let $ = cheerio.load(dataHtml);
     //res.send($.html("input,select,title"))
-    var htmlJson = html2json($.html("input,select,title"));
+    var htmlJson = html2json($.html("input,radio,title"));
 
     json = htmlJson.child
     var title = json.filter(obj => { return obj.tag == "title" });
@@ -68,7 +68,23 @@ function genrateNode(htmlFile) {
 }
 
 app.get('/', async (req, res) => {
-  genrateNode("AppPages.HTML")
+  var htmlPath = path.join(__dirname, '.', 'HTMLSource','AppPages.html');
+
+  fs.readFile(htmlPath, 'utf8', (err, dataHtml) => {
+
+    let $ = cheerio.load(dataHtml);
+    //res.send($.html("input,select,title"))
+    var htmlJson = html2json($.html("input,select,title"));
+
+    json = htmlJson.child
+    var title = json.filter(obj => { return obj.tag == "title" });
+    title = title.map(ele => { return ele.child[0].text })
+    title = title[0].replace(/\s/g, "");
+    var body = json.filter(obj => { return obj.tag != "title" })
+    //var bodyForm=body[0].child.filter(obj=>{return obj.tag=="form"})
+    bodyForm = body.filter(obj => { return (obj.node == "element" && obj.attr && obj.attr.name) })
+    res.send(bodyForm)
+  })
 });
 
 app.post('/', (req, res) => {
@@ -84,7 +100,7 @@ app.post('/', (req, res) => {
 
 app.listen(PORT, () => {
   genrateNode("AppPages.HTML")
-  console.log(`Example app listening on port ${PORT}`)
+ //console.log(`Example app listening on port ${PORT}`)
  
 })
 
@@ -94,7 +110,7 @@ app.listen(PORT, () => {
 function typeConversion(data) {
   var dict = {};
   for (var i = 0; i < data.length; i++) {
-    dict[data[i].name] = functions.DataTypeConverion(data[i].type)
+    dict[data[i].name] = functions.DataTypeConverion(data[i])
   }
   return dict;
 }
