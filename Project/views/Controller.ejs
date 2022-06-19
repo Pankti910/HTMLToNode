@@ -3,13 +3,27 @@ var ObjectId = require('mongoose').Types.ObjectId;
 
 
 exports.get=(req,res,next)=>{
-
-    <%=controller%>.find(req.body).then((data)=>{
+    <%if(constant){%>
+        if(!req.body.master){
+            res.send("Add master key");
+        }
+        else{
+        <%=controller%>.find(req.body).then((data)=>{
+            res.status(200).json({message:"Get List",data:data});
+         }).catch((err)=>{
+             console.log(err);
+             res.status(500).json({message:"Error occurs while fetching data",data:[]})
+         });
+        }
+        <%}%>    
+        <%if(!constant){%>
+      <%=controller%>.find(req.body).then((data)=>{
        res.status(200).json({message:"Get List",data:data});
     }).catch((err)=>{
         console.log(err);
         res.status(500).json({message:"Error occurs while fetching data",data:[]})
     });
+    <%}%>
 }
  exports.create=(req,res,next)=>{
     var newData=new <%=controller%>(req.body);
