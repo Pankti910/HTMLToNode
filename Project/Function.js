@@ -105,10 +105,10 @@ function ModelAttributes(data) {
  */
 function createModel(projectFolderPath, model, modelProperty) {
 
-  var constant=checkConstantFileModel(modelProperty);
-  app.render("Model", { model: model, modelProperty: modelProperty, constantFile: constant.constantFile }, (err, res) => {
-    if (err) console.log("Error occurs in model creation");
-    makeFile(`${projectFolderPath}/Model/${model}.js`, res).then(() => {
+   var constant=checkConstantFileModel(modelProperty);
+    app.render("Model", { model: model, modelProperty: modelProperty, constantFile: constant.constantFile }, (err, res) => {
+      if (err) console.log("Error occurs in model creation");
+      makeFile(`${projectFolderPath}/Model/${model}.js`, res).then(() => {
       console.log("Model Created");
 
     }).catch((err) => { console.log("Error occurs in model creation") });
@@ -122,7 +122,7 @@ function createModel(projectFolderPath, model, modelProperty) {
  * @param {*} controller -controller name
  * @param {*} model -model name
  */
-function createController(projectFolderPath, controller, model,modelProperty,costant=false) {
+function createController(projectFolderPath, controller, model,costant=false) {
  // var constant=checkConstantFileModel(modelProperty);
   app.render("Controller", { controller: controller, model: model,constant:costant }, (err, res) => {
     if (err) console.log("Error occurs in controller creation");
