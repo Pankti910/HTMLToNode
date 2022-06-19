@@ -99,7 +99,7 @@ var storageAssign = multer.diskStorage({
 var uploadFile = multer({ 
   
   storage: storageAssign
-}).single("post");       
+}).single("file");       
 app.post("/", (req, res) => {
   uploadFile(req,res,async(err)=>{
     if(err) console.log(err);
