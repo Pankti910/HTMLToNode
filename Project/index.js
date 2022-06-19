@@ -8,20 +8,15 @@ var path = require('path');
 var html2json = require('html2json').html2json;
 const rmdir = require('rimraf');
 var bodyParser = require('body-parser');
-let mongoose = require('mongoose');
-var Constants = require('constants');
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 require('./connection')
 const functions = require("./Function.js")
-let constants = require('./constant');
 const cheerio = require('cheerio');
-const staticPath = path.join(__dirname, './public/');
-app.use(express.static(staticPath));
 app.set('view engine', 'ejs');
 const makeDir = util.promisify(fs.mkdir)
 const makeFile = util.promisify(fs.writeFile)
-
+const _=require('lodash')
 
 function genrateNode(htmlFile) {
   var htmlPath = path.join(__dirname, '.', 'HTMLSource', htmlFile);
@@ -29,18 +24,30 @@ function genrateNode(htmlFile) {
   fs.readFile(htmlPath, 'utf8', (err, dataHtml) => {
 
     let $ = cheerio.load(dataHtml);
-    //res.send($.html("input,select,title"))
-    var htmlJson = html2json($.html("input,radio,title"));
+    //select input,radio,title,select,checkbox,textarea from html 
+    var htmlJson = html2json($.html("input,radio,title,select,checkbox,textarea"));
 
     json = htmlJson.child
     var title = json.filter(obj => { return obj.tag == "title" });
+    title?title=title:title="Undefined Title";
     title = title.map(ele => { return ele.child[0].text })
+    //replace space if there is space in title
     title = title[0].replace(/\s/g, "");
+    
+    
+    //  get body element 
     var body = json.filter(obj => { return obj.tag != "title" })
-    //var bodyForm=body[0].child.filter(obj=>{return obj.tag=="form"})
-    bodyForm = body.filter(obj => { return (obj.node == "element" && obj.attr && obj.attr.name) })
-    var modelProperty = typeConversion(bodyForm.map(obj => { return obj.attr }))
+    //check if html element has object has attr property and attr property has name
+    var rawModel = body.filter(obj => { return (obj.node == "element" && obj.attr && obj.attr.name) })
+    //remove special characters from name
+    rawModel=rawModel.map((x)=>{x.attr.name=x.attr.name.replace(/[`~!@#$%^&*()|+\-=?;:'",.<>\{\}\[\]\\\/]/gi,'');return x});
+    //mapping into object
+    rawModel=rawModel.map(obj => { return{attr:obj.attr,child:obj.child||null,tag:obj.tag}})
+    //group by name on html elements
+    var modelProperty = createModelProperty(_.groupBy(rawModel,'attr.name'))
+   //get html filename
     var projectFolder = path.parse(path.basename(htmlPath)).name
+   //get project folder path
     const projectFolderPath = path.join(__dirname, '../ProjectsDestination', projectFolder);
 
     if (fs.existsSync(projectFolderPath)) {
@@ -55,62 +62,46 @@ function genrateNode(htmlFile) {
     }
     //create project folder
     var dir;
-    makeDir(dir = projectFolderPath).then(() => {
-      console.log(`Directory ${dir} is created`)
-      functions.createModel(dir, title, modelProperty);
-      functions.createController(dir, title);
-      functions.createRoute(dir,title);
-      functions.createIndex(dir,title);
-      functions.createPackage(dir,title);
-      functions.createConnection(dir)
-    }).catch(err => { console.log(err.message) })
+    if(modelProperty){
+      makeDir(dir = projectFolderPath).then(() => {
+        functions.createDir(dir);
+        functions.createModel(dir, title, modelProperty);
+        functions.createController(dir, title,title);
+        functions.createRoute(dir,title);
+        functions.createIndex(dir,title,modelProperty);
+        functions.createPackage(dir,title);
+        functions.createConnection(dir);
+        functions.createConstants(dir,_.groupBy(rawModel,'attr.name'))
+     }).catch(err => { console.log(err.message) })
+    }else{
+      res.status(200).send("HTML not have any valid form data")
+    }
+    
   })
 }
 
-app.get('/', async (req, res) => {
-  var htmlPath = path.join(__dirname, '.', 'HTMLSource','AppPages.html');
 
-  fs.readFile(htmlPath, 'utf8', (err, dataHtml) => {
-
-    let $ = cheerio.load(dataHtml);
-    //res.send($.html("input,select,title"))
-    var htmlJson = html2json($.html("input,select,title"));
-
-    json = htmlJson.child
-    var title = json.filter(obj => { return obj.tag == "title" });
-    title = title.map(ele => { return ele.child[0].text })
-    title = title[0].replace(/\s/g, "");
-    var body = json.filter(obj => { return obj.tag != "title" })
-    //var bodyForm=body[0].child.filter(obj=>{return obj.tag=="form"})
-    bodyForm = body.filter(obj => { return (obj.node == "element" && obj.attr && obj.attr.name) })
-    res.send(bodyForm)
-  })
-});
-
-app.post('/', (req, res) => {
-  var codeCreate = new Code({ type: req.body.type, genericCode: req.body.genericCode })
-  codeCreate.save().then((result) => {
-    res.send("Save")
-  }).catch((error) => {
-    res.send(error)
-  })
-})
 
 
 
 app.listen(PORT, () => {
-  genrateNode("AppPages.HTML")
+  genrateNode("form.HTML")
  //console.log(`Example app listening on port ${PORT}`)
  
 })
 
 
 
-
-function typeConversion(data) {
+/**
+ * 
+ * @param {*} data -form element raw object array which is grouped by name 
+ * @returns 
+ */
+function createModelProperty(data) {
   var dict = {};
-  for (var i = 0; i < data.length; i++) {
-    dict[data[i].name] = functions.DataTypeConverion(data[i])
-  }
+  //access raw object one by one
+  Object.keys(data).forEach((key)=>{
+   dict[key] = functions.ModelAttributes(data[key])
+  })
   return dict;
 }

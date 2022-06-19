@@ -1,0 +1,5 @@
+module.exports={
+    <% Object.keys(constants).forEach(function(key){%>
+     <%=key%>:[<%- constants[key] %>],
+    <%})%>
+}

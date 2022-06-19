@@ -7,11 +7,38 @@
         <p>Content</p>
         <span>TEXT</span>
         <form>
-            <label for="fname">First name:</label>
-            <input type="text" id="fname" name="fname" placeholder="HL"><br><br>
-            <label for="lname">Last name:</label>
-            <input type="text" id="lname" name="lname"><br><br>
-            <input type="submit" value="Submit">
+            <!-- <label for="fname">First name:</label>
+            <input type="text" id="fname" name="fname" placeholder="HL" required><br><br>
+            <label for="email">Last name:</label>
+            <input type="email" id="email" name="email" required><br><br>
+            <label for="age">Age:</label>
+            <input type="number" id="age" name="age" required min=10 max=30><br><br> -->
+            
+      <label>Choose a Gender:</label><br />
+      <input type="radio" id="gender_male" name="gender" value="Male" />
+      <input type="radio" id="gender_female" name="gender" value="Female" />
+      <br /><br />
+
+
+    <label for="form-pet">Choose pets:</label><br />
+      <select name="pets" multiple id="form-pet">
+        <option value="DOG">Dog</option>
+        <option value="CAT">Cat</option>
+        <option value="HAMSTER">Hamster</option>
+        <option value="PARROT">Parrot</option>
+        <option value="SPIDER">Spider</option>
+        <option value="GOLDFISH">Goldfish</option>
+      </select>
+
+      <input type="checkbox" id="form-vehicle-0" name="vehicles[]" value="TRUCK" />
+      <label for="form-vehicle-0">Truck</label><br />
+      <input type="checkbox" id="form-vehicle-1" name="vehicles[]" value="CAR" />
+      <label for="form-vehicle-1">Car</label><br />
+      <input type="checkbox" id="form-vehicle-2" name="vehicles[]" value="BIKE" />
+      <label for="form-vehicle-2">Bike</label>
+      <input type="checkbox" id="consern" name="consern" value="consern" />
+      <label for="consern">Yes</label>
+      <br /><br />
           </form>
     </body>
 </html>

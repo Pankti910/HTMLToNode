@@ -1,6 +1,7 @@
 const express=require('express');
 const app=express();
 require('./connection')
+<%if (constantRoute){%>const dropdownconstantRoute=require(`./Route/dropdownconstantRoute`);<%}%>
 const <%=title%>Route=require(`./Route/<%=title%>Route`);
 const PORT=process.env.PORT || 9000;
 
@@ -13,3 +14,4 @@ app.use(bodyParser.json())
 app.listen(PORT,()=>console.log("Server start at "+PORT));
 
 app.use('/',<%=title%>Route);
+<%if (constantRoute){%>app.use('/dropdownconstant',dropdownconstantRoute);<%}%>

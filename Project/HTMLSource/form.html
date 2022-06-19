@@ -1,0 +1,79 @@
+<html> 
+    <head>
+        <title>Registration</title>
+    </head>
+    <body>
+        <h1>Header 1</h1>
+        <p>Content</p>
+        <span>TEXT</span>
+        <form>
+           First Name:
+           <input type="text" name="FirstName" required/>
+           <br>
+           Last Name:
+           <input type="text" name="LastName" required/>
+           <br>
+           Email:
+           <input type="text" name="email" required/> 
+           <br>
+           Gender:<input type="radio" name="gender" value="male">Male
+           <input type="radio" name="gender" value="female">Female
+           <br>
+           DOB:<input type="date" name="dob"/><br>
+           Age:<input type="number" max="30" min="10"/>
+           
+          Address:<textarea name="address"></textarea><br>
+          City:
+          <select name="city">
+            <option value="surat">Surat</option>
+            <option value="pune">Pune</option>
+            <option value="rajkot">Rajkot</option>
+            <option value="junagadh">Junagadh</option>
+            <option value="bhuj">Bhuj</option>
+            <option value="Morbi">Morbi</option>
+            <option value="vapi">Vapi</option>
+            <option value="mumbai">Mumbai</option>
+            <option value="jaipur">Jaipur</option>
+            <option value="udaipur">Udaipur</option>
+            <option value="jaisalmer">Jaisalmer</option>
+            <option value="bikaner">Bikaner</option>
+          </select>
+
+          State:
+          <select name="state">
+            <option value="andhra pradesh">Andhra Pradesh</option>
+            <option value="assam">Assam </option>
+            <option value="bihar">Bihar </option>
+            <option value="goa">Goa</option>
+            <option value="gujarat">Gujarat</option>
+            <option value="haryana">Haryana</option>
+            <option value="madhya pradesh">Madhya Pradesh</option>
+            <option value="maharashtra">Maharashtra</option>
+            <option value="punjab">Punjab</option>
+            <option value="UP">UP</option>
+            <option value="sikkim">Sikkim </option>
+            <option value="rajasthan">Rajasthan</option>
+          </select>
+ 
+          Country code:
+           <input type="text"  name="country_code" pattern="[A-Za-z]{3}" title="Three letter country code"><br>
+           CARS:
+           <select name="cars">
+            <option value="volvo">Volvo</option>
+            <option value="saab">Saab</option>
+            <option value="mercedes">Mercedes</option>
+            <option value="audi">Audi</option>
+          </select>
+          <legend>Hobbies</legend>
+            <input type="checkbox" name="hobby" value="sports" id="sport">
+            <label for="sport">Sports</label>
+            <input type="checkbox" name="hobby" value="music" id="music">
+            <label for="music">Music</label>
+            <input type="checkbox" name="hobby" value="reading" id="read">
+            <label for="read">Reading</label>
+           <input type="checkbox" id="consern" name="consern" value="consern" />
+           <label for="consern">Yes</label>
+           <br /><br />
+          </form>
+    </body>
+</html>
