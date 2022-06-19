@@ -1,5 +1,6 @@
 const {Schema} = require('mongoose');
 const mongoose=require("mongoose");
+<%if (constantFile){%>const constants=require("../constants");<%}%>
 const <%=model%>Schema=mongoose.Schema({
   <%  Object.keys(modelProperty).forEach(function (key) { %>
     <%= key.replace(/"/,'') %>:{  <%  Object.keys(modelProperty[key]).forEach(function (ObjKey) { %>

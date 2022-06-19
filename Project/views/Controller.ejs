@@ -1,19 +1,18 @@
-const {<%=title%>} = require('../Model/<%=title%>');
+const {<%=controller%>} = require('../Model/<%=model%>');
 var ObjectId = require('mongoose').Types.ObjectId;
 
 
 exports.get=(req,res,next)=>{
 
-    <%=title%>.find({}).then((data)=>{
+    <%=controller%>.find(req.body).then((data)=>{
        res.status(200).json({message:"Get List",data:data});
     }).catch((err)=>{
         console.log(err);
         res.status(500).json({message:"Error occurs while fetching data",data:[]})
     });
 }
-
-exports.create=(req,res,next)=>{
-    var newData=new <%=title%>(req.body);
+ exports.create=(req,res,next)=>{
+    var newData=new <%=controller%>(req.body);
     newData.validate((err)=>{
         if(err){res.send({message:Object.values(err.errors).map(x=>x.message),data:null})}
         else{
@@ -31,7 +30,7 @@ exports.update=(req,res,next)=>{
     const id=req.params.id;
     var updateData=req.body;
     
-    <%=title%>.findByIdAndUpdate(id,updateData,{ upsert: true, new: true, runValidators:true }).then((result)=>{
+    <%=controller%>.findByIdAndUpdate(id,updateData,{ upsert: true, new: true, runValidators:true }).then((result)=>{
         res.status(200).json({message:"Data updated",data:result})
     }).catch((err)=>{
         if(err._message=="Validation failed"){
@@ -46,7 +45,7 @@ exports.update=(req,res,next)=>{
 
 exports.delete=(req,res,next)=>{
     const id=req.params.id;
-    <%=title%>.findByIdAndDelete(id).then((result)=>{
+    <%=controller%>.findByIdAndDelete(id).then((result)=>{
         res.status(200).json({message:"Data deleted",data:null})
     }).catch((err)=>{
         console.log(err)
