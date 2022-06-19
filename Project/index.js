@@ -6,26 +6,25 @@ var fs = require('fs');
 const util = require('util')
 var path = require('path');
 var html2json = require('html2json').html2json;
-const rmdir = require('rimraf');
 var bodyParser = require('body-parser');
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
-require('./connection')
 const functions = require("./Function.js")
 const cheerio = require('cheerio');
 app.set('view engine', 'ejs');
-const makeDir = util.promisify(fs.mkdir)
-const makeFile = util.promisify(fs.writeFile)
-const _=require('lodash')
+const makeDir = util.promisify(fs.mkdir);
+const _=require('lodash');
+const multer = require('multer');
 
-function genrateNode(htmlFile) {
+
+async function genrateNode(htmlFile,res) {
   var htmlPath = path.join(__dirname, '.', 'HTMLSource', htmlFile);
 
   fs.readFile(htmlPath, 'utf8', (err, dataHtml) => {
 
     let $ = cheerio.load(dataHtml);
     //select input,radio,title,select,checkbox,textarea from html 
-    var htmlJson = html2json($.html("input,radio,title,select,checkbox,textarea"));
+    var htmlJson = html2json($.html("input,radio,title,select,checkbox,textarea,password"));
 
     json = htmlJson.child
     var title = json.filter(obj => { return obj.tag == "title" });
@@ -62,33 +61,60 @@ function genrateNode(htmlFile) {
     }
     //create project folder
     var dir;
-    if(modelProperty){
-      makeDir(dir = projectFolderPath).then(() => {
-        functions.createDir(dir);
-        functions.createModel(dir, title, modelProperty);
-        functions.createController(dir, title,title);
-        functions.createRoute(dir,title);
-        functions.createIndex(dir,title,modelProperty);
-        functions.createPackage(dir,title);
-        functions.createConnection(dir);
-        functions.createConstants(dir,_.groupBy(rawModel,'attr.name'))
-     }).catch(err => { console.log(err.message) })
+    if(body.length>0){
+      makeDir(dir = projectFolderPath).then(async() => {
+          var projectDB=title+"_"+Date.now();
+          functions.createDir(dir);
+          functions.createModel(dir, title, modelProperty);
+          functions.createController(dir, title,title,modelProperty);
+          functions.createRoute(dir,title);
+          functions.createIndex(dir,title,modelProperty);
+          functions.createPackage(dir,title);
+          functions.createConnection(dir,projectDB);
+          functions.createConstants(dir,_.groupBy(rawModel,'attr.name'),projectDB) 
+          return res.send(dir);
+        
+     }).catch(err => { res.status(500).send("Something went wrong"); })
     }else{
-      res.status(200).send("HTML not have any valid form data")
+     res.send("HTML has not form data");
     }
     
   })
 }
 
+var storageAssign = multer.diskStorage({
+  destination: function (req, file, cb) {
 
+           cb(null,"./HTMLSource/")
+  },
+  filename: function (req, file, cb) {
+      filename=file.originalname
+  
+       cb(null,filename)
+  }
+
+})
+
+var uploadFile = multer({ 
+  
+  storage: storageAssign
+}).single("post");       
+app.post("/", (req, res) => {
+  uploadFile(req,res,async(err)=>{
+    if(err) console.log(err);
+    console.log("------------");
+    
+    await genrateNode(req.file.originalname,res)
+    
+  })
+});
 
 
 
 app.listen(PORT, () => {
-  genrateNode("form.HTML")
- //console.log(`Example app listening on port ${PORT}`)
- 
-})
+ // 
+ console.log(`Example app listening on port ${PORT}`);
+ })
 
 
 
@@ -101,7 +127,11 @@ function createModelProperty(data) {
   var dict = {};
   //access raw object one by one
   Object.keys(data).forEach((key)=>{
-   dict[key] = functions.ModelAttributes(data[key])
+   var propertyAttributes=functions.ModelAttributes(data[key])
+   if(propertyAttributes){
+    dict[key] =propertyAttributes
+   } 
+   
   })
   return dict;
 }

@@ -5,12 +5,11 @@ var fs = require('fs');
 const util = require('util')
 const makeDir = util.promisify(fs.mkdir)
 const makeFile = util.promisify(fs.writeFile)
-var path = require('path');
-const { type } = require('os');
-const staticPath = path.join(__dirname, './public/');
-app.use(express.static(staticPath));
+const readFile=util.promisify(fs.readFile);
 app.set('view engine', 'ejs');
 var { dropdownconstant } = require('./Model/DropDownConstant');
+var mongoose = require('mongoose');
+
 
 /*
  *remove existing folder and its sub-folders 
@@ -40,10 +39,11 @@ function removeDir(projectFolderPath) {
  */
 function ModelAttributes(data) {
   //conditions to check attribute and it's value and assign to data
-  if (data.length == 1 && (_.first(data).attr.type == "text" || _.first(data).attr.type == "number" || _.first(data).attr.type == "email"||_.first(data).attr.type == "date")) {
+  if (data.length == 1 && (_.first(data).attr.type == "text" || _.first(data).attr.type == "number" || _.first(data).attr.type == "email"||_.first(data).attr.type == "date")||_.first(data).attr.type == "password") {
     data = _.first(data);
   }
   else if (_.first(data).attr.type == 'radio') {
+    var defaultValue=data.filter((x) => { return x.attr.checked });
     _.first(data).attr["values"] = data.map((x) => { return x.attr.value });
     data = _.first(data);
   }
@@ -60,6 +60,7 @@ function ModelAttributes(data) {
     data = _.first(data);
     data['attr']['type'] = "textarea";
   }
+ 
 
   //dictionary to property data type
   //some checkbox and select type assign by conditions 
@@ -74,6 +75,7 @@ function ModelAttributes(data) {
     "select": (data.attr.type == "select" && data.attr.values.length <= 10) ? "String" : 'Schema.Types.ObjectId',
     "checkbox": (data.attr.type == "checkbox" && data.attr.values.length > 1) ? "[String]" : "Boolean",
     "textarea": "String",
+    "password":"String",
   }
   // condition to check is there datatype or not
   if (typeDict[data.attr.type]) {
@@ -83,11 +85,11 @@ function ModelAttributes(data) {
       ...(data.attr.required != undefined) && { required: `[true,"${data.attr.name} is required"]` },
       ...(data.attr.min != undefined && data.attr.min) && { min: `[${data.min},"${data.attr.name} must be at least ${data.attr.min}"]` },
       ...(data.attr.min != undefined && data.attr.max) && { max: `[${data.attr.max},"${data.attr.name} must be up to ${data.attr.max}"]` },
-      ...(data.attr.type == 'email') && { match: `[new RegExp(/[a-z0-9]+@[a-z]+\.[a-z]{2,3}/), "Please enter a valid email address"]` },
-      ...(data.attr.type == 'radio' || (data.attr.type == 'select' && data.attr.values.length < 3) || (data.attr.type == 'checkbox' && data.attr.values.length > 1)) && { enum: `{values:constants.${data.attr.name},message:"Invalid selection for ${data.attr.name}"}` },
-      ...(data.attr.type == 'select' && (data.attr.values.length > 10) && { ref: "dropdownconstant" }),
-       ...(data.attr.pattern) &&{ match: `[new RegExp(/${data.attr.pattern}/), "Please enter a valid ${data.attr.name} "]` }
-    }
+      ...(data.attr.type == 'email'||data.attr.name == 'email'||data.attr.name == 'mail') && { match: `[new RegExp(/[a-z0-9]+@[a-z]+\.[a-z]{2,3}/), "Please enter a valid email address"]` },
+      ...(data.attr.type == 'radio' || (data.attr.type == 'select' && data.attr.values.length <= 10) || (data.attr.type == 'checkbox' && data.attr.values.length > 1)) && { enum: `{values:constants.${data.attr.name},message:"Invalid selection for ${data.attr.name}"}` },
+      ...(data.attr.type == 'select' && (data.attr.values.length > 10) && { ref: `"dropdownconstant"` }),
+      ...(data.attr.pattern) &&{ match: `[new RegExp(/${data.attr.pattern}/), "Please enter a valid ${data.attr.name} "]` },
+      }
     return obj;
   }
   else {
@@ -101,7 +103,7 @@ function ModelAttributes(data) {
  * @param {*} model -model name
  * @param {*} modelProperty -model property and attributes 
  */
-function createModel(projectFolderPath, model, modelProperty) {
+async function createModel(projectFolderPath, model, modelProperty) {
 
   var constant=checkConstantFileModel(modelProperty);
   app.render("Model", { model: model, modelProperty: modelProperty, constantFile: constant.constantFile }, (err, res) => {
@@ -120,13 +122,13 @@ function createModel(projectFolderPath, model, modelProperty) {
  * @param {*} controller -controller name
  * @param {*} model -model name
  */
-function createController(projectFolderPath, controller, model) {
-
-  app.render("Controller", { controller: controller, model: model }, (err, res) => {
+function createController(projectFolderPath, controller, model,modelProperty,costant=false) {
+ // var constant=checkConstantFileModel(modelProperty);
+  app.render("Controller", { controller: controller, model: model,constant:costant }, (err, res) => {
     if (err) console.log("Error occurs in controller creation");
     makeFile(`${projectFolderPath}/Controller/${controller}Controller.js`, res).then(() => {
       console.log("Controller Created");
-    }).catch((err) => { console.log("Error occurs in controller creation") });
+    }).catch((err) => { console.log(err) });
   })
 };
 
@@ -183,8 +185,8 @@ function createPackage(projectFolderPath, title) {
  * this is to create connection.js file
  * @param {*} projectFolderPath -project folder path 
  */
-function createConnection(projectFolderPath) {
-  app.render("Connection", (err, res) => {
+function createConnection(projectFolderPath,title) {
+  app.render("Connection",{title:title}, (err, res) => {
     if (err) console.log("Error occur in connection.js creation");
     makeFile(`${projectFolderPath}/connection.js`, res).then(() => {
       console.log("connection.js Created");
@@ -197,37 +199,49 @@ function createConnection(projectFolderPath) {
  * @param {*} projectFolderPath -project folder path
  * @param {*} rawData -it is raw model property of
  */
-function createConstants(projectFolderPath, rawData) {
+function createConstants(projectFolderPath, rawData,databaseConnection) {
   var constatntDist = {};
   var constantDB=false;
+  var mongoDB = 'mongodb://127.0.0.1/'+databaseConnection;
+  console.log(mongoDB);
+  mongoose.connect(mongoDB, {useNewUrlParser: true, useUnifiedTopology: true});
+  
+  //Get the default connection
+  var db = mongoose.connection;
+  
+  //Bind connection to error event (to get notification of connection errors)
+  db.on('error', console.error.bind(console, 'MongoDB connection error:'));
+
   Object.keys(rawData).forEach((key) => {
 
     //this condition is for the radio button and checkbox 
     //values must be more than 1  
     if (rawData[key].length > 1 && !rawData[key].child) {
-      constatntDist[_.first(rawData[key])] = rawData[key].map((x) => { return `"${x.attr.value}"` });
+      constatntDist[_.first(rawData[key]).attr.name]=rawData[key].map((x)=>{return `"${x.attr.value}"`});
     }
 
     //this is condition for the dropdown
     else if (_.first(rawData[key]).child) {
 
-      constatntDist[_.first(rawData[key])] = _.first(rawData[key]).child.filter((x) => { return x.attr }).map((y) => `"${y.attr.value}"`);
+      constatntDist[_.first(rawData[key]).attr.name] = _.first(rawData[key]).child.filter((x) => { return x.attr }).map((y) => `"${y.attr.value}"`);
       //check if values are more than 10
-      if (constatntDist[_.first(rawData[key])].length > 10) {
+      var childLength=constatntDist[_.first(rawData[key]).attr.name].length 
+      if (childLength> 10) {
         //data which will be instered into database
-        dropDownBulkData = constatntDist[_.first(rawData[key])].map((x) => { return { master: key.toUpperCase(), constant_value: x.replace('"', '') } });
-        dropdownconstant.insertMany(dropDownBulkData).then((res) => { console.log(`${key} data insert`) }).catch((e) => { console.log(e) })  }
-        delete constatntDist[_.first(rawData[key])];
+        dropDownBulkData = constatntDist[_.first(rawData[key]).attr.name].map((x) => { return { master: key.toUpperCase(), constant_value: x.replace(/\"/g, '') } });
+        dropdownconstant.insertMany(dropDownBulkData).then((res) => { console.log(`${key} data insert`) }).catch((e) => { console.log(e) }) 
+        delete constatntDist[_.first(rawData[key]).attr.name];
         //set flag true
         constantDB=true;
       }
+    }
   })
   
   //constant into database
   //model controller route creation
   if(constantDB){
     createModel(projectFolderPath, 'dropdownconstant', { constants: { type: 'String' }, master: { type: 'String' } });
-    createController(projectFolderPath,'dropdownconstant','dropdownconstant');
+    createController(projectFolderPath,'dropdownconstant','dropdownconstant',true);
     createRoute(projectFolderPath,'dropdownconstant','dropdownconstant');
   }
   

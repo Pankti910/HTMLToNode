@@ -7,5 +7,6 @@ const <%=model%>Schema=mongoose.Schema({
         <%=ObjKey.replace(/"/,'') %> :<%-modelProperty[key][ObjKey]%>, <% }) %>
       },<% }) %>
   });
+  
 const <%=model%>=mongoose.model("<%=model%>",<%=model%>Schema);
 module.exports={<%=model%>};
