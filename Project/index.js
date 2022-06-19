@@ -67,7 +67,7 @@ async function genrateNode(htmlFile,res) {
           var projectDB=title+"_"+Date.now();
           functions.createDir(dir);
           functions.createModel(dir, title, modelProperty);
-          functions.createController(dir, title,title,modelProperty);
+          functions.createController(dir, title,title);
           functions.createRoute(dir,title);
           functions.createIndex(dir,title,modelProperty);
           functions.createPackage(dir,title);
