@@ -8,14 +8,11 @@ var path = require('path');
 var html2json = require('html2json').html2json;
 const rmdir = require('rimraf');
 var bodyParser = require('body-parser');
-let mongoose = require('mongoose');
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 require('./connection')
 const functions = require("./Function.js")
 const cheerio = require('cheerio');
-const staticPath = path.join(__dirname, './public/');
-app.use(express.static(staticPath));
 app.set('view engine', 'ejs');
 const makeDir = util.promisify(fs.mkdir)
 const makeFile = util.promisify(fs.writeFile)
