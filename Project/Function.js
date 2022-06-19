@@ -103,7 +103,7 @@ function ModelAttributes(data) {
  * @param {*} model -model name
  * @param {*} modelProperty -model property and attributes 
  */
-async function createModel(projectFolderPath, model, modelProperty) {
+function createModel(projectFolderPath, model, modelProperty) {
 
   var constant=checkConstantFileModel(modelProperty);
   app.render("Model", { model: model, modelProperty: modelProperty, constantFile: constant.constantFile }, (err, res) => {

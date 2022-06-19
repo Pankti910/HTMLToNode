@@ -63,6 +63,7 @@ async function genrateNode(htmlFile,res) {
     var dir;
     if(body.length>0){
       makeDir(dir = projectFolderPath).then(async() => {
+          //database name title_timestamp
           var projectDB=title+"_"+Date.now();
           functions.createDir(dir);
           functions.createModel(dir, title, modelProperty);
