@@ -5,6 +5,19 @@
 * package.json,index.js ,connection.js files
 * Database is created dyamically
 
+# How to run
+* cd Project
+* npm i
+* nodemon
+* on port 8080 use post method form data key name  should be file 
+curl:
+curl --location --request POST 'localhost:8080' \
+--form 'file=@"/E:/form.html"'
+* In output it return either folder path when node is genrated or send invalid html   
+* If api response give folder path then go there
+* npm i
+* genrated code run on localhost 9000
+* dropdown api localhost:9000/dropdownconstant 
 
 # Standard input HTML to genrate nodejs crud
 * HTML elements should have name and all text element name should be different and all grouped element name should be different
