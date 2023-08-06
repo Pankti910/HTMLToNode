@@ -1,44 +1,44 @@
 # HTMLToNode
-* Genrate Node crud from uploaded html file
-* identify html elements and convert to nodejs model with validation
-* genrate crud apis
+* Generate Node crud from uploaded html file
+* identify HTML elements and convert to Node.js model with validation
+* generate crud APIs
 * package.json,index.js ,connection.js files
-* Database is created dyamically
+* Database is created dynamically
 
 # How to run
 * cd Project
 * npm i
 * nodemon
-* on port 8080 use post method form data key name  should be file 
+* on port 8080 use POST method form data key name  should be file 
 curl:
 curl --location --request POST 'localhost:8080' \
 --form 'file=@"/E:/form.html"'
-* In output it return either folder path when node is genrated or send invalid html   
-* If api response give folder path then go there
+* In the output it returns either folder path when Node.js  project generated or sends an invalid HTML   
+* If API response give a folder path then go there
 * npm i
-* genrated code run on localhost 9000
+* generated code run on localhost 9000
 * dropdown api localhost:9000/dropdownconstant 
 
 # Standard input HTML to genrate nodejs crud
-* HTML elements should have name and all text element name should be different and all grouped element name should be different
+* HTML elements should have names and all text element names should be different and all grouped element names should be different
 ```<intput type="text" name="name"/> <input type="number" name="name"/> <input type="radio" name="name" value="yes"/>Yes```
 This html not genrate valid crud api and model
-* HTML element should have name attribute otherwise nodejs project will not genrate
+* HTML element should have a name attribute otherwise Node.js the project will not generate
 
 # NPM packages used
 1. **body-parser** -parse request to json
-2. **cheerio** -parsing html-->get html tags which need to process from anywhere like inside div tag
-3. **ejs**-template engine used to genrate files dynamically
+2. **cheerio** -parsing HTML -->get HTML tags that need to process from anywhere like inside the div tag
+3. **ejs**-template engine used to generate files dynamically
 4. **express**-nodejs framework
 5. **html2json**-convert html to json
-6. **lodash**-for array ,object function groupby,first,map and filters
+6. **lodash**-for array, object function group by, first, map and filters
 7. **mongoose**-for ODM
 8. **multer**- to upload file
 9. **nodemon**-automatically restarting application
 
 # Constraints
 1. Name is essential to generate the Node Code
-2. Dropdowns with more than 10 options you need to add that reference id after fetching data from that master because there is one collection for dropdown 
+2. For Dropdowns with more than 10 options you need to add that reference id after fetching data from that master because there is one collection for dropdown 
 EX:
 
 | _id  | master |constant_value |
